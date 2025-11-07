@@ -1,0 +1,8 @@
+# Exclude development files from package exports
+/.gitignore         export-ignore
+/.gitattributes     export-ignore
+/tests/             export-ignore
+/.github/           export-ignore
+/phpunit.xml        export-ignore
+/main.php           export-ignore
+/README.md          export-ignore
