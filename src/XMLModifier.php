@@ -1,11 +1,11 @@
 <?php
-
 namespace Codeeshop\PsModuleOcmod;
 
 class XMLModifier
 {
     private $modDir;
     private $rootDir;
+    private $bakFiles = [];
 
     public function __construct($rootDir, $modDir)
     {
@@ -131,20 +131,31 @@ class XMLModifier
 
     public function revert()
     {
-        foreach (glob($this->modDir . '*/*/*.ocmod.xml') as $file) {
-            $xml = simplexml_load_file($file);
-            foreach ($xml->file as $f) {
-                $relPath = (string) $f['path'];
-                $fullPath = $this->rootDir . '/' . $relPath;
-                $backupPath = $fullPath . '.bak';
+        $directory = $this->rootDir;
+        $this->bakFiles = [];
 
-                if (file_exists($backupPath)) {
-                    copy($backupPath, $fullPath);
-                    unlink($backupPath);
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $file) {
+            if ($file->isFile() && $file->getExtension() === 'bak') {
+                $this->bakFiles[] = $bakFile = $file->getPathname();
+
+                $old_file = rtrim($bakFile, '.bak');
+                if (file_exists($bakFile)) {
+                    copy($bakFile, $old_file);
+                    unlink($bakFile);
+                    print_r($bakFile, $old_file);
                 }
             }
         }
 
         return true;
+    }
+
+    private function getBackupFiles()
+    {
+        return $this->bakFiles;
     }
 }
