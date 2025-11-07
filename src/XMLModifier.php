@@ -6,6 +6,7 @@ class XMLModifier
     private $modDir;
     private $rootDir;
     private $bakFiles = [];
+    private static $active_modules = [];
 
     public function __construct($rootDir, $modDir)
     {
@@ -16,6 +17,11 @@ class XMLModifier
     public function apply()
     {
         foreach (glob($this->modDir . '*/*/*.ocmod.xml') as $file) {
+            $module_name = basename(dirname(dirname($file)));
+            if (!$this->isActiveModule($module_name)) {
+                continue;
+            }
+
             $xml = simplexml_load_file($file);
             foreach ($xml->file as $f) {
                 $relPath = (string) $f['path'];
@@ -65,60 +71,52 @@ class XMLModifier
                         $index = isset($searchNode['index']) ? (int)$searchNode['index'] : -1;
 
                         $lines = explode("\n", $modified);
-                        $newLines = [];
                         $matchCount = 0;
+                        $targetIndex = isset($searchNode['index']) ? (int)$searchNode['index'] : -1;
 
-                        for ($i = 0; $i < count($lines); $i++) {
-                            $line = $lines[$i];
-                            $check = $searchTrim ? trim($line) : $line;
+                        for ($line_id = 0; $line_id < count($lines); $line_id++) {
+                            $line = $lines[$line_id];
 
-                            if (strpos($check, $search) !== false) {
-                                $shouldApply = ($index === -1 || $matchCount === $index);
+                            if (strpos($line, $search) !== false) {
+                                // Respect index="X"
+                                if ($targetIndex !== -1 && $matchCount !== $targetIndex) {
+                                    $matchCount++;
+                                    continue;
+                                }
                                 $matchCount++;
 
-                                if ($shouldApply) {
-                                    switch ($position) {
-                                        case 'before':
-                                            $newLines[] = $add;
-                                            $newLines[] = $line;
-                                            break;
+                                switch ($position) {
+                                    default:
+                                    case 'replace':
+                                        $new_lines = explode("\n", $add);
 
-                                        case 'after':
-                                            $newLines[] = $line;
+                                        if ($offset < 0) {
+                                            array_splice($lines, $line_id + $offset, abs($offset) + 1, $new_lines);
+                                            $line_id -= $offset;
+                                        } else {
+                                            array_splice($lines, $line_id, $offset + 1, $new_lines);
+                                        }
+                                        break;
 
-                                            // Offset controls how many lines after the match we skip before injecting
-                                            for ($j = 1; $j <= $offset && ($i + $j) < count($lines); $j++) {
-                                                $newLines[] = $lines[$i + $j];
-                                            }
+                                    case 'before':
+                                        $new_lines = explode("\n", $add);
+                                        array_splice($lines, max(0, $line_id - $offset), 0, $new_lines);
+                                        $line_id += count($new_lines);
+                                        break;
 
-                                            $newLines[] = $add;
-
-                                            // Advance $i by offset lines, since we already added them
-                                            $i += $offset;
-                                            break;
-
-                                        case 'replace':
-                                            // Preserve indentation of the original line
-                                            preg_match('/^(\s*)/', $line, $indentMatch);
-                                            $indent = $indentMatch[1] ?? '';
-
-                                            // Indent each line of the injected code
-                                            $indentedAdd = implode("\n", array_map(function ($l) use ($indent) {
-                                                return $indent . $l;
-                                            }, explode("\n", $add)));
-
-                                            $newLines[] = $indentedAdd;
-                                            break;
-                                    }
-                                } else {
-                                    $newLines[] = $line;
+                                    case 'after':
+                                        $new_lines = explode("\n", $add);
+                                        array_splice($lines, min(count($lines), ($line_id + 1) + $offset), 0, $new_lines);
+                                        $line_id += count($new_lines);
+                                        break;
                                 }
-                            } else {
-                                $newLines[] = $line;
+
+                                // Stop if specific index matched (no need to continue)
+                                if ($targetIndex !== -1) break;
                             }
                         }
 
-                        $modified = implode("\n", $newLines);
+                        $modified = implode("\n", $lines);
                     }
                 }
 
@@ -127,6 +125,17 @@ class XMLModifier
         }
 
         return true;
+    }
+
+    private function isActiveModule($moduleName)
+    {
+        // Only apply if installed and active
+        if ($moduleName && (in_array($moduleName, self::$active_modules) || \Module::isEnabled($moduleName))) {
+            self::$active_modules[] = $moduleName;
+            return true;
+        }
+
+        return false;
     }
 
     public function revert()
@@ -154,7 +163,7 @@ class XMLModifier
         return true;
     }
 
-    private function getBackupFiles()
+    public function getBackupFiles()
     {
         return $this->bakFiles;
     }
