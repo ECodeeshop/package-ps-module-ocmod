@@ -8,10 +8,10 @@ What is PsModuleOcmod?
 
 Ocmod modifying core files for PrestaShop modules
 
-DocumentPHP v1.0.0 (Test)
+v1.0.0 (Test)
 ------------------------------------
 
-v1.1.0 is the production ready release. 
+v1.0.0 is the production ready release. 
 
 Features
 --------
