@@ -1,17 +1,17 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-PsModule/logger
+PsModuleOcmod
 =============
 
-What is PsModule/logger?
+What is PsModuleOcmod?
 ----------------------
 
-Reusable Logger for PrestaShop modules
+Ocmod modifying core files for PrestaShop modules
 
 DocumentPHP v1.0.0 (Test)
 ------------------------------------
 
-v1.0.0 is the production ready release. 
+v1.1.0 is the production ready release. 
 
 Features
 --------
@@ -19,24 +19,24 @@ Features
 It supports the following:
 
 * *PHP 5.4+ compatible*
-* *Easy to Use*, you can use Logger in modules Easily.
+* *Easy to Use*, you can use XMLModifier in modules Easily.
 
 Installation
 ------------
 
-PsModule/logger requires PHP 5.4 or higher to run.
+requires PHP 5.4 or higher to run.
 However, code of earlier PHP versions can be analyzed.
 
 Install PsModule/logger:
 
 ### Via Composer
 
-There is a PsModule/logger composer package that you can use to install PsModule/logger.
+There is a PsModuleOcmod composer package that you can use to install PsModuleOcmod.
 
-How to use PsModule/logger ?
+How to use PsModuleOcmod ?
 -------------------------
 
-To run PsModule/logger after installing via composer and copy the main.php file and make changes accordingly ( file attached in this repo ).
+To run PsModuleOcmod after installing via composer and modify core files without issue ( file attached in this repo ).
 
 Contact
 -------
@@ -55,4 +55,4 @@ Reaching out to us is easy, and can be done with:
 Screenshots
 -------------------------
 
-![til](https://raw.githubusercontent.com/codeeshop-oc/package-ps-logger/main/screenshots/image1.png)
+![til](https://raw.githubusercontent.com/codeeshop-oc/package-ps-module-ocmod/main/screenshots/image1.png)
